@@ -1,0 +1,95 @@
+services:
+  discovery-service:
+    build: ./EurekaServer
+    image: halimtrabelsi/discovery-service
+    container_name: discovery-service
+    ports:
+      - "8761:8761"
+    hostname: discovery
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-service:8761/eureka/
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8761"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - unihub-network
+
+  mysql-db:
+    image: mysql:5.6
+    container_name: mysql-db
+    environment:
+      - MYSQL_ROOT_PASSWORD=
+      - MYSQL_ALLOW_EMPTY_PASSWORD=true
+      - MYSQL_DATABASE=gestionStock_db
+    ports:
+      - "3306:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - unihub-network
+
+  gateway-service:
+    build: ./Gateway
+    image: halimtrabelsi/gateway-service:latest
+    container_name: gateway-service
+    ports:
+      - "8093:8093"
+    hostname: gateway
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-service:8761/eureka/
+      - spring_cloud_gateway_routes[0]_id=stock
+      - spring_cloud_gateway_routes[0]_uri=http://stock-service:8088
+      - spring_cloud_gateway_routes[0]_predicates[0]=Path=/stock/**
+      - spring_cloud_gateway_routes[0]_filters[0]=AddResponseHeader=Access-Control-Allow-Methods,GET,POST,OPTIONS
+    depends_on:
+      discovery-service:
+        condition: service_healthy
+      mysql-db:
+        condition: service_healthy
+    networks:
+      - unihub-network
+
+  stock-service:
+    build: ./GestionStock
+    image: halimtrabelsi/stock-service:latest
+    container_name: stock-service
+    ports:
+      - "8085:8089"
+    hostname: stock-service
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql-db:3306/gestionStock_db?autoReconnect=true&useSSL=false
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-service:8761/eureka/
+    depends_on:
+      discovery-service:
+        condition: service_healthy
+      mysql-db:
+        condition: service_healthy
+    networks:
+      - unihub-network
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:23.0.0
+    container_name: keycloak
+    command: start-dev --http-port=8180
+    ports:
+      - "8180:8180"
+    environment:
+      - KEYCLOAK_ADMIN=admin
+      - KEYCLOAK_ADMIN_PASSWORD=admin123
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8180"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - unihub-network
+
+networks:
+  unihub-network:
+    name: unihub-network

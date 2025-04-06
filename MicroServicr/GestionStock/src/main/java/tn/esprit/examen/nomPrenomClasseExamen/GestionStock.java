@@ -4,14 +4,17 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 
+
+@EnableDiscoveryClient
 @EnableAspectJAutoProxy
 @EnableScheduling
 @SpringBootApplication
-public class nomPrenomClasseExamenApplication {
+public class GestionStock {
 
     public static void main(String[] args) {
-        SpringApplication.run(nomPrenomClasseExamenApplication.class, args);
+        SpringApplication.run(GestionStock.class, args);
     }
 
 }
