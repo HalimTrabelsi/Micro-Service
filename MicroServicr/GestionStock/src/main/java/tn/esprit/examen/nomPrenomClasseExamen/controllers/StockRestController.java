@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.*;
+import tn.esprit.examen.nomPrenomClasseExamen.services.PdfService;
 import tn.esprit.examen.nomPrenomClasseExamen.services.QrCodeService;
 import tn.esprit.examen.nomPrenomClasseExamen.services.StockService;
 
@@ -27,6 +28,9 @@ public class StockRestController {
 
     @Autowired
     private StockRepo stockRepo;
+
+    @Autowired
+    private PdfService pdfService;
 
 
     @Autowired
@@ -86,7 +90,7 @@ public class StockRestController {
         List<Stock> stocks = stockService.sortStocksByPrice(order);
         return new ResponseEntity<>(stocks, HttpStatus.OK);
     }
-
+    // 🔹 Generer un qr code pour chaque stock enregistre dans la BDD
     @GetMapping(value = "/qr/{id}", produces = MediaType.IMAGE_PNG_VALUE)
     public ResponseEntity<byte[]> generateQrCode(@PathVariable int id) {
         Optional<Stock> stockOptional = stockRepo.findById(id);
@@ -100,6 +104,25 @@ public class StockRestController {
         try {
             byte[] image = qrCodeService.generateQrCode(text, 250, 250);
             return ResponseEntity.ok().contentType(MediaType.IMAGE_PNG).body(image);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    // 🔹 Generer un PDF code pour chaque stock enregistre dans la BDD
+    @GetMapping(value = "/pdf/{id}", produces = MediaType.APPLICATION_PDF_VALUE)
+    public ResponseEntity<byte[]> generateStockPdf(@PathVariable int id) {
+        Optional<Stock> stockOptional = stockRepo.findById(id);
+        if (stockOptional.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        Stock stock = stockOptional.get();
+        try {
+            byte[] pdf = pdfService.generateStockPdf(stock);
+            return ResponseEntity.ok()
+                    .header("Content-Disposition", "attachment; filename=stock_" + id + ".pdf")
+                    .body(pdf);
         } catch (Exception e) {
             return ResponseEntity.internalServerError().build();
         }
