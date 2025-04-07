@@ -15,9 +15,30 @@ public class StockService {
 
     @Autowired
     private StockRepo stockRepo;
+    @Autowired
+    private MailService mailService;
+    @Autowired
+    private SmsService smsService;
+
 
     public Stock addStock(Stock stock) {
-        return stockRepo.save(stock);
+        // Sauvegarder le stock dans la base
+        Stock savedStock = stockRepo.save(stock);
+
+        // Créer le contenu du mail
+        String subject = "🆕 Nouveau stock ajouté : " + savedStock.getStockName();
+        String body = "Un nouveau stock vient d'être ajouté :\n\n" +
+                "📦 Nom : " + savedStock.getStockName() + "\n" +
+                "🔢 Quantité : " + savedStock.getStockQty() + "\n" +
+                "🏷️ Type : " + savedStock.getStockType() + "\n\n" +
+                "Merci.";
+
+        // Envoyer le mail (remplace l'email par un email réel)
+        mailService.sendStockNotification("trabelsihalim4@gmail.com", subject, body);
+        String sms = "📦 Nouveau stock ajouté : " + savedStock.getStockName() + " (Qte: " + savedStock.getStockQty() + ")";
+        smsService.sendSms("+21623340490", sms);
+
+        return savedStock;
     }
 
     public Stock updateStock(int id, Stock newStock) {
