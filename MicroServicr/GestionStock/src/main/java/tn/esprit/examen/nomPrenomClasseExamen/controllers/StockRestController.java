@@ -1,6 +1,8 @@
 package tn.esprit.examen.nomPrenomClasseExamen.controllers;
 
 import org.springframework.http.MediaType;
+import tn.esprit.examen.nomPrenomClasseExamen.entities.ChatRequestDTO;
+import tn.esprit.examen.nomPrenomClasseExamen.entities.ChatResponseDTO;
 import tn.esprit.examen.nomPrenomClasseExamen.entities.Stock;
 import tn.esprit.examen.nomPrenomClasseExamen.repositories.StockRepo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.*;
+import tn.esprit.examen.nomPrenomClasseExamen.services.CohereService;
 import tn.esprit.examen.nomPrenomClasseExamen.services.PdfService;
 import tn.esprit.examen.nomPrenomClasseExamen.services.QrCodeService;
 import tn.esprit.examen.nomPrenomClasseExamen.services.StockService;
@@ -35,6 +38,9 @@ public class StockRestController {
 
     @Autowired
     private QrCodeService qrCodeService;
+
+    @Autowired
+    private CohereService cohereService;
 
     // 🔹 Ajouter un stock
     @PostMapping("/addStock")
@@ -127,6 +133,14 @@ public class StockRestController {
             return ResponseEntity.internalServerError().build();
         }
     }
+    @PostMapping("/chatbot/ask")
+    public ResponseEntity<ChatResponseDTO> askChatbot(@RequestBody ChatRequestDTO chatRequest) {
+        String response = cohereService.getChatbotResponse(chatRequest.getText());
+        return ResponseEntity.ok(new ChatResponseDTO(response));
+    }
+
+
+
 
 
 }

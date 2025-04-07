@@ -69,6 +69,17 @@
                 <type>pom</type>
             </dependency>
 
+                <!-- Spring Boot Web for making HTTP requests -->
+                <dependency>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-web</artifactId>
+                </dependency>
+                <!-- Jackson for JSON binding -->
+                <dependency>
+                    <groupId>com.fasterxml.jackson.core</groupId>
+                    <artifactId>jackson-databind</artifactId>
+                </dependency>
+
 
             <dependency>
                 <groupId>com.google.zxing</groupId>
