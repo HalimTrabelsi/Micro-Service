@@ -33,6 +33,5 @@ build/
 .vscode/
 
 # Ignore application.properties et/ou .env
-src/main/resources/application.properties
-.env
+MicroServicr/GestionStock/src/main/resources/application.properties
 
